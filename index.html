@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🌱 Interweb Plants!</title>
+  <link rel="stylesheet" href="styles.css">
+  <script type="module" src="script.js" defer></script>
+</head>
+<body>
+  <div id="app">
+    <h1>Days Survived: <span id="days-counter">0</span></h1>
+    <div id="plant-container">
+      <img id="plant" src="assets/pictures/tree_stage1.png" alt="Plant">
+    </div>
+    <div id="info">
+      <p>Time Since Last Watered: <span id="last-watered">N/A</span></p>
+      <p>Time Until Next Water: <span id="countdown-timer">N/A</span></p>
+    </div>
+    <button id="water-btn" disabled>Water the Plant</button>
+  </div>
+</body>
+</html>
