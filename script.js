@@ -43,14 +43,6 @@ const plants = [
 // Constants
 const ONE_DAY = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
 const TIME_TO_DIE = 12 * 60 * 60 * 1000; // Time to die without water
-const SOIL_MOISTURE_LEVELS = [
-	{ label: "Soaked", duration: 2 * 60 * 60 * 1000 },
-	{ label: "Wet", duration: 4 * 60 * 60 * 1000 },
-	{ label: "Moist", duration: 6 * 60 * 60 * 1000 },
-	{ label: "Damp", duration: 8 * 60 * 60 * 1000 },
-	{ label: "Dry", duration: 10 * 60 * 60 * 1000 },
-	{ label: "Cracking", duration: Infinity },
-];
 
 // DOM Elements
 const appElement = document.getElementById("app");
@@ -61,99 +53,88 @@ const waterBtn = document.getElementById("water-btn");
 
 // Update the UI based on Firestore data
 async function updatePlantUI(data) {
-	try {
-		const now = Date.now();
-		const { lastWatered, plantedAt, daysSurvived } = data;
+	const now = Date.now();
+	const { lastWatered, plantedAt, daysSurvived } = data;
 
-		// Calculate full days survived
-		const timeElapsed = now - plantedAt;
-		const fullDays = Math.floor(timeElapsed / ONE_DAY);
+	// Calculate full days survived
+	const timeElapsed = now - plantedAt;
+	const fullDays = Math.floor(timeElapsed / ONE_DAY);
 
-		// Debug: Log data updates
-		console.log("Updating Plant UI with data:", data);
-		console.log("Time elapsed since planting:", timeElapsed, "Full days survived:", fullDays);
-
-		if (fullDays > daysSurvived) {
-			data.daysSurvived = fullDays;
-			await setDoc(plantRef, data); // Update Firestore
-			console.log("Firestore updated with new days survived:", fullDays);
-		}
-
-		// Update UI
-		daysCounter.textContent = data.daysSurvived;
-		soilMoistureEl.textContent = `Soil Moisture: ${getSoilMoistureLabel(now - lastWatered)}`;
-
-		const currentStage = plants[0].stages.find((stage) => data.daysSurvived >= stage.day) || plants[0].stages[0];
-		plantImg.src = currentStage.png; // Display the correct image
-	} catch (error) {
-		console.error("Error updating Plant UI:", error);
+	// Ensure daysSurvived increments by at most 1
+	if (fullDays === daysSurvived + 1) {
+		data.daysSurvived = fullDays;
+		console.log("Updating Firestore with:", data);
+		await setDoc(plantRef, data); // Ensure continuity of `plantedAt`
+	} else if (fullDays > daysSurvived + 1) {
+		console.error("Days survived increment too large! Potential cheat detected.");
+		return;
 	}
+
+	// Update the UI
+	daysCounter.textContent = data.daysSurvived;
+	soilMoistureEl.textContent = `Soil Moisture: ${getSoilMoistureLabel(now - lastWatered)}`;
+	const currentStage = plants[0].stages.find((stage) => data.daysSurvived >= stage.day) || plants[0].stages[0];
+	plantImg.src = currentStage.png; // Display the correct image
 }
 
+
 // Reset the plant in Firestore
-async function resetPlant(data) {
-	try {
-		const now = Date.now();
+async function resetPlant() {
+	const now = Date.now();
 
-		if (now - data.lastWatered <= TIME_TO_DIE) {
-			console.warn("Reset denied: Plant is not dead yet.");
-			return;
-		}
+	// Reset data with new planting time
+	const resetData = {
+		lastWatered: now,    // Reset watering time
+		plantedAt: now,      // Reset planting time
+		daysSurvived: 0,     // Reset survival days
+	};
 
-		// Log reset event
-		logEvent(analytics, "plant_reset", {
-			daysSurvived: data.daysSurvived,
-			reason: "death",
-		});
-
-		// Reset plant in Firestore
-		await setDoc(plantRef, {
-			lastWatered: now,
-			plantedAt: now,
-			daysSurvived: 0,
-		});
-		console.log("Plant reset successfully!");
-	} catch (error) {
-		console.error("Error resetting plant:", error);
-	}
+	console.log("Resetting plant with data:", resetData);
+	await setDoc(plantRef, resetData); // Write new data to Firestore
+	console.log("Plant reset successfully!");
 }
 
 // Water the plant
 async function waterPlant() {
-	try {
-		const now = Date.now();
-		const docSnap = await getDoc(plantRef);
+	const now = Date.now();
+	const docSnap = await getDoc(plantRef);
 
-		if (!docSnap.exists()) {
-			console.error("Firestore document does not exist. Unable to water plant.");
-			return;
-		}
+	if (!docSnap.exists()) {
+		console.error("Plant document does not exist!");
+		return;
+	}
 
-		const data = docSnap.data();
+	const data = docSnap.data();
 
-		// Log data before updating
-		console.log("Watering plant. Current Firestore data:", data);
+	// Validate watering logic
+	if (now - data.lastWatered <= TIME_TO_DIE) {
+		const updateData = {
+			lastWatered: now, // Update watering time
+			daysSurvived: data.daysSurvived, // Keep days survived
+			plantedAt: data.plantedAt, // Ensure continuity
+		};
 
-		if (now - data.lastWatered <= TIME_TO_DIE) {
-			await setDoc(plantRef, {
-				...data,
-				lastWatered: now,
-			});
-			console.log("Plant watered successfully!");
-		} else {
-			console.warn("Watering denied: Plant is dead.");
-		}
-	} catch (error) {
-		console.error("Error watering plant:", error);
+		console.log("Watering plant with data:", updateData);
+		await setDoc(plantRef, updateData);
+		console.log("Plant watered successfully!");
+	} else {
+		console.warn("Watering denied: Plant is dead.");
 	}
 }
 
-// Get the soil moisture label based on time since last watered
+// Get the soil moisture label
 function getSoilMoistureLabel(timeSinceWatered) {
-	let elapsed = 0;
+	const SOIL_MOISTURE_LEVELS = [
+		{ label: "Soaked", duration: 2 * 60 * 60 * 1000 },
+		{ label: "Wet", duration: 4 * 60 * 60 * 1000 },
+		{ label: "Moist", duration: 6 * 60 * 60 * 1000 },
+		{ label: "Damp", duration: 8 * 60 * 60 * 1000 },
+		{ label: "Dry", duration: 10 * 60 * 60 * 1000 },
+		{ label: "Cracking", duration: Infinity },
+	];
+
 	for (const level of SOIL_MOISTURE_LEVELS) {
-		elapsed += level.duration;
-		if (timeSinceWatered < elapsed) {
+		if (timeSinceWatered < level.duration) {
 			return level.label;
 		}
 	}
@@ -162,15 +143,10 @@ function getSoilMoistureLabel(timeSinceWatered) {
 
 // Real-time listener for Firestore
 onSnapshot(plantRef, (docSnap) => {
-	try {
-		if (docSnap.exists()) {
-			updatePlantUI(docSnap.data());
-		} else {
-			console.warn("Firestore document does not exist. Initializing new plant.");
-			resetPlant({}); // Initialize the first plant if Firestore is empty
-		}
-	} catch (error) {
-		console.error("Error in Firestore snapshot listener:", error);
+	if (docSnap.exists()) {
+		updatePlantUI(docSnap.data());
+	} else {
+		resetPlant(); // Initialize the first plant if Firestore is empty
 	}
 });
 
