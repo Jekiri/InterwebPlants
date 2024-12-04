@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>🌱 Interweb Plants!</title>
+  <title>🌱 InterwebPlants</title>
   <link rel="stylesheet" href="styles.css">
   <script type="module" src="script.js" defer></script>
 </head>
@@ -11,13 +11,18 @@
   <div id="app">
     <h1>Days Survived: <span id="days-counter">0</span></h1>
     <div id="plant-container">
+      <!-- Replace gif logic with PNG for now -->
       <img id="plant" src="assets/pictures/tree_stage1.png" alt="Plant">
     </div>
+    <br>
+    <br>
+    <br>
+    <br>
     <div id="info">
-      <p>Time Since Last Watered: <span id="last-watered">N/A</span></p>
-      <p>Time Until Next Water: <span id="countdown-timer">N/A</span></p>
+      <p id="soil-moisture">Soil Moisture: N/A</p>
     </div>
-    <button id="water-btn" disabled>Water the Plant</button>
+    <br>
+    <button id="water-btn">Water the plant!</button>
   </div>
 </body>
 </html>
