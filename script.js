@@ -45,52 +45,55 @@ const ONE_DAY = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
 const TIME_TO_DIE = 12 * 60 * 60 * 1000; // Time to die without water
 
 // DOM Elements
-const appElement = document.getElementById("app");
-const plantImg = document.getElementById("plant");
 const daysCounter = document.getElementById("days-counter");
+const plantImg = document.getElementById("plant");
 const soilMoistureEl = document.getElementById("soil-moisture");
+const statusEl = document.getElementById("status");
 const waterBtn = document.getElementById("water-btn");
 
-// Update the UI based on Firestore data
+// Update the UI with plant status
 async function updatePlantUI(data) {
 	const now = Date.now();
 	const { lastWatered, plantedAt, daysSurvived } = data;
 
-	// Calculate full days survived
-	const timeElapsed = now - plantedAt;
-	const fullDays = Math.floor(timeElapsed / ONE_DAY);
+	// Calculate plant status
+	const timeSinceLastWatered = now - lastWatered;
+	const isDead = timeSinceLastWatered > TIME_TO_DIE;
 
-	// Ensure daysSurvived increments by at most 1
-	if (fullDays === daysSurvived + 1) {
-		data.daysSurvived = fullDays;
-		console.log("Updating Firestore with:", data);
-		await setDoc(plantRef, data); // Ensure continuity of `plantedAt`
-	} else if (fullDays > daysSurvived + 1) {
-		console.error("Days survived increment too large! Potential cheat detected.");
-		return;
+	// Update status display
+	statusEl.textContent = `Status: ${isDead ? "Dead" : "Alive"}`;
+	statusEl.className = isDead ? "status-dead" : "status-alive";
+
+	// Update soil moisture display
+	const moistureLabel = getSoilMoistureLabel(timeSinceLastWatered);
+	soilMoistureEl.textContent = `Soil Moisture: ${moistureLabel}`;
+	soilMoistureEl.className = `soil-moisture-${moistureLabel.toLowerCase()}`;
+
+	// Update days survived
+	const fullDays = Math.floor((now - plantedAt) / ONE_DAY);
+	daysCounter.textContent = isDead ? "0" : fullDays;
+
+	// Update plant stage
+	const currentStage = plants[0].stages.find((stage) => fullDays >= stage.day) || plants[0].stages[0];
+	plantImg.src = currentStage.png;
+
+	// Log updates
+	console.log("Plant updated:", { ...data, isDead });
+
+	if (isDead) {
+		console.warn("The plant is dead. Please water it to restart.");
 	}
-
-	// Update the UI
-	daysCounter.textContent = data.daysSurvived;
-	soilMoistureEl.textContent = `Soil Moisture: ${getSoilMoistureLabel(now - lastWatered)}`;
-	const currentStage = plants[0].stages.find((stage) => data.daysSurvived >= stage.day) || plants[0].stages[0];
-	plantImg.src = currentStage.png; // Display the correct image
 }
-
 
 // Reset the plant in Firestore
 async function resetPlant() {
 	const now = Date.now();
-
-	// Reset data with new planting time
 	const resetData = {
-		lastWatered: now,    // Reset watering time
-		plantedAt: now,      // Reset planting time
-		daysSurvived: 0,     // Reset survival days
+		lastWatered: now,
+		plantedAt: now,
+		daysSurvived: 0,
 	};
-
-	console.log("Resetting plant with data:", resetData);
-	await setDoc(plantRef, resetData); // Write new data to Firestore
+	await setDoc(plantRef, resetData);
 	console.log("Plant reset successfully!");
 }
 
@@ -105,24 +108,24 @@ async function waterPlant() {
 	}
 
 	const data = docSnap.data();
+	const isDead = now - data.lastWatered > TIME_TO_DIE;
 
-	// Validate watering logic
-	if (now - data.lastWatered <= TIME_TO_DIE) {
+	if (isDead) {
+		// Reset the plant if it's dead
+		await resetPlant();
+		console.log("Plant was dead. Resetting...");
+	} else {
+		// Water the plant normally
 		const updateData = {
-			lastWatered: now, // Update watering time
-			daysSurvived: data.daysSurvived, // Keep days survived
-			plantedAt: data.plantedAt, // Ensure continuity
+			...data,
+			lastWatered: now,
 		};
-
-		console.log("Watering plant with data:", updateData);
 		await setDoc(plantRef, updateData);
 		console.log("Plant watered successfully!");
-	} else {
-		console.warn("Watering denied: Plant is dead.");
 	}
 }
 
-// Get the soil moisture label
+// Get soil moisture label based on time since last watered
 function getSoilMoistureLabel(timeSinceWatered) {
 	const SOIL_MOISTURE_LEVELS = [
 		{ label: "Soaked", duration: 2 * 60 * 60 * 1000 },
@@ -134,9 +137,7 @@ function getSoilMoistureLabel(timeSinceWatered) {
 	];
 
 	for (const level of SOIL_MOISTURE_LEVELS) {
-		if (timeSinceWatered < level.duration) {
-			return level.label;
-		}
+		if (timeSinceWatered < level.duration) return level.label;
 	}
 	return "Cracking";
 }
@@ -146,7 +147,7 @@ onSnapshot(plantRef, (docSnap) => {
 	if (docSnap.exists()) {
 		updatePlantUI(docSnap.data());
 	} else {
-		resetPlant(); // Initialize the first plant if Firestore is empty
+		resetPlant();
 	}
 });
 
