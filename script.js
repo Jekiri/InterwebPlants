@@ -61,13 +61,13 @@ async function updatePlantUI(data) {
 	const isDead = timeSinceLastWatered > TIME_TO_DIE;
 
 	// Update status display
-	statusEl.textContent = Status: ${isDead ? "Dead" : "Alive"};
+	statusEl.textContent = `Status: ${isDead ? "Dead" : "Alive"}`;
 	statusEl.className = isDead ? "status-dead" : "status-alive";
 
 	// Update soil moisture display
 	const moistureLabel = getSoilMoistureLabel(timeSinceLastWatered);
-	soilMoistureEl.textContent = Soil Moisture: ${moistureLabel};
-	soilMoistureEl.className = soil-moisture-${moistureLabel.toLowerCase()};
+	soilMoistureEl.textContent = `Soil Moisture: ${moistureLabel}`;
+	soilMoistureEl.className = `soil-moisture-${moistureLabel.toLowerCase()}`;
 
 	// Update days survived
 	const fullDays = Math.floor((now - plantedAt) / ONE_DAY);
