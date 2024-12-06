@@ -50,10 +50,6 @@ const plantImg = document.getElementById("plant");
 const soilMoistureEl = document.getElementById("soil-moisture");
 const statusEl = document.getElementById("status");
 const wateringCan = document.getElementById("watering-can");
-const waterMsgContainer = document.getElementById("water-msg-container");
-const helpBtn = document.getElementById("help-btn");
-const helpModal = document.getElementById("help-modal");
-const closeHelp = document.getElementById("close-help");
 
 // Update the UI with plant status
 async function updatePlantUI(data) {
@@ -80,9 +76,6 @@ async function updatePlantUI(data) {
 	// Update plant stage
 	const currentStage = plants[0].stages.find((stage) => fullDays >= stage.day) || plants[0].stages[0];
 	plantImg.src = currentStage.png;
-
-	// Add "dead" class to plant image if dead
-	plantImg.classList.toggle("dead", isDead);
 
 	// Log updates
 	console.log("Plant updated:", { ...data, isDead });
@@ -130,23 +123,6 @@ async function waterPlant() {
 		await setDoc(plantRef, updateData);
 		console.log("Plant watered successfully!");
 	}
-
-	// Show the water message
-	showWaterMessage();
-}
-
-// Show the "You watered the plant" message
-function showWaterMessage() {
-	const msg = document.createElement("div");
-	msg.className = "water-msg";
-	msg.textContent = "You watered the plant!";
-
-	waterMsgContainer.appendChild(msg);
-
-	// Remove the message after animation ends
-	msg.addEventListener("animationend", () => {
-		waterMsgContainer.removeChild(msg);
-	});
 }
 
 // Get soil moisture label
@@ -166,23 +142,6 @@ function getSoilMoistureLabel(timeSinceWatered) {
 	return "Cracking";
 }
 
-// Show the help modal
-helpBtn.addEventListener("click", () => {
-	helpModal.classList.remove("hidden");
-});
-
-// Close the help modal
-closeHelp.addEventListener("click", () => {
-	helpModal.classList.add("hidden");
-});
-
-// Close the help modal when clicking outside the content
-helpModal.addEventListener("click", (event) => {
-	if (event.target === helpModal) {
-		helpModal.classList.add("hidden");
-	}
-});
-
 // Real-time listener for Firestore
 onSnapshot(plantRef, (docSnap) => {
 	if (docSnap.exists()) {
@@ -191,6 +150,8 @@ onSnapshot(plantRef, (docSnap) => {
 		resetPlant();
 	}
 });
+
+
 
 // Event listener for watering can graphic
 wateringCan.addEventListener("click", waterPlant);
