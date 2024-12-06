@@ -49,7 +49,7 @@ const daysCounter = document.getElementById("days-counter");
 const plantImg = document.getElementById("plant");
 const soilMoistureEl = document.getElementById("soil-moisture");
 const statusEl = document.getElementById("status");
-const wateringCan = document.getElementById("watering-can");
+const waterBtn = document.getElementById("water-btn");
 
 // Update the UI with plant status
 async function updatePlantUI(data) {
@@ -61,13 +61,13 @@ async function updatePlantUI(data) {
 	const isDead = timeSinceLastWatered > TIME_TO_DIE;
 
 	// Update status display
-	statusEl.textContent = `Status: ${isDead ? "Dead" : "Alive"}`;
+	statusEl.textContent = Status: ${isDead ? "Dead" : "Alive"};
 	statusEl.className = isDead ? "status-dead" : "status-alive";
 
 	// Update soil moisture display
 	const moistureLabel = getSoilMoistureLabel(timeSinceLastWatered);
-	soilMoistureEl.textContent = `Soil Moisture: ${moistureLabel}`;
-	soilMoistureEl.className = `soil-moisture-${moistureLabel.toLowerCase()}`;
+	soilMoistureEl.textContent = Soil Moisture: ${moistureLabel};
+	soilMoistureEl.className = soil-moisture-${moistureLabel.toLowerCase()};
 
 	// Update days survived
 	const fullDays = Math.floor((now - plantedAt) / ONE_DAY);
@@ -125,15 +125,17 @@ async function waterPlant() {
 	}
 }
 
-// Get soil moisture label
+
+// Hours
+// Get soil moisture label based on time since last watered
 function getSoilMoistureLabel(timeSinceWatered) {
 	const SOIL_MOISTURE_LEVELS = [
-		{ label: "Soaked", duration: 1 * 60 * 1000 }, // 1 minute
-		{ label: "Wet", duration: 3 * 60 * 1000 }, // 3 minutes
-		{ label: "Moist", duration: 6 * 60 * 1000 }, // 6 minutes
-		{ label: "Damp", duration: 8 * 60 * 1000 }, // 8 minutes
-		{ label: "Dry", duration: 10 * 60 * 1000 }, // 10 minutes
-		{ label: "Cracking", duration: Infinity }, // Beyond 10 minutes
+		{ label: "Soaked", duration: 30 * 60 * 1000 }, // 30 mins
+		{ label: "Wet", duration: 1 * 60 * 60 * 1000 }, // 1 hour
+		{ label: "Moist", duration: 3 * 60 * 60 * 1000 }, // 3 hours
+		{ label: "Damp", duration: 5 * 60 * 60 * 1000 }, // 5 hours
+		{ label: "Dry", duration: 8 * 60 * 60 * 1000 }, // 8 hours
+		{ label: "Cracking", duration: Infinity },
 	];
 
 	for (const level of SOIL_MOISTURE_LEVELS) {
@@ -141,6 +143,8 @@ function getSoilMoistureLabel(timeSinceWatered) {
 	}
 	return "Cracking";
 }
+
+
 
 // Real-time listener for Firestore
 onSnapshot(plantRef, (docSnap) => {
@@ -151,7 +155,5 @@ onSnapshot(plantRef, (docSnap) => {
 	}
 });
 
-
-
-// Event listener for watering can graphic
-wateringCan.addEventListener("click", waterPlant);
+// Event listener for watering button
+waterBtn.addEventListener("click", waterPlant);

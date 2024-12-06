@@ -34,6 +34,23 @@ h1 {
 	width: 200px;
 }
 
+button {
+	font-size: 16px;
+	padding: 10px 20px;
+	border: none;
+	border-radius: 5px;
+	background: #003fc7;
+	color: rgb(0, 0, 0);
+	cursor: pointer;
+}
+
+button:disabled {
+	background: #ccc;
+	cursor: not-allowed;
+}
+
+
+
 #water-can-container {
 	cursor: pointer;
 	margin-top: 20px;
@@ -52,6 +69,8 @@ h1 {
 	transform: scale(1.1);
 }
 
+
+/* Soil moisture color coding */
 .soil-moisture-soaked {
 	color: blue;
 }
@@ -76,6 +95,7 @@ h1 {
 	color: red;
 }
 
+/* Status color coding */
 .status-alive {
 	color: green;
 }
