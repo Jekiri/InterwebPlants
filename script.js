@@ -125,15 +125,16 @@ async function waterPlant() {
 	}
 }
 
-// Get soil moisture label based on time since last watered
+
+// Minutes
 function getSoilMoistureLabel(timeSinceWatered) {
 	const SOIL_MOISTURE_LEVELS = [
-		{ label: "Soaked", duration: 2 * 60 * 60 * 1000 },
-		{ label: "Wet", duration: 4 * 60 * 60 * 1000 },
-		{ label: "Moist", duration: 6 * 60 * 60 * 1000 },
-		{ label: "Damp", duration: 8 * 60 * 60 * 1000 },
-		{ label: "Dry", duration: 10 * 60 * 60 * 1000 },
-		{ label: "Cracking", duration: Infinity },
+		{ label: "Soaked", duration: 1 * 60 * 1000 }, // 1 minute
+		{ label: "Wet", duration: 3 * 60 * 1000 }, // 3 minutes
+		{ label: "Moist", duration: 6 * 60 * 1000 }, // 6 minutes
+		{ label: "Damp", duration: 8 * 60 * 1000 }, // 8 minutes
+		{ label: "Dry", duration: 10 * 60 * 1000 }, // 10 minutes
+		{ label: "Cracking", duration: Infinity }, // Beyond 10 minutes
 	];
 
 	for (const level of SOIL_MOISTURE_LEVELS) {
@@ -141,6 +142,7 @@ function getSoilMoistureLabel(timeSinceWatered) {
 	}
 	return "Cracking";
 }
+
 
 // Real-time listener for Firestore
 onSnapshot(plantRef, (docSnap) => {
