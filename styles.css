@@ -1,3 +1,4 @@
+/* General styling */
 body {
 	font-family: Arial, sans-serif;
 	text-align: center;
@@ -15,15 +16,18 @@ body {
 	justify-content: center;
 }
 
-h1 {
+
+h2 {
 	font-size: 24px;
 	margin-bottom: 10px;
+	color: #000000;
 }
 
 #status {
 	font-size: 18px;
 	font-weight: bold;
 	margin-bottom: 20px;
+	color: #000000;
 }
 
 #plant-container {
@@ -34,51 +38,121 @@ h1 {
 	width: 200px;
 }
 
-button {
-	font-size: 16px;
-	padding: 10px 20px;
-	border: none;
-	border-radius: 5px;
-	background: #34a853;
-	color: white;
+#water-can-container {
 	cursor: pointer;
+	position: relative;
+	margin-top: 20px;
 }
 
-button:disabled {
-	background: #ccc;
-	cursor: not-allowed;
+#watering-can {
+	width: 80px;
+	transition: transform 0.3s ease;
 }
 
-/* Soil moisture color coding */
-.soil-moisture-soaked {
-	color: blue;
+#watering-can:hover {
+	transform: scale(1.2);
 }
 
-.soil-moisture-wet {
-	color: lightblue;
+#watering-can:active {
+	transform: scale(1.1);
 }
 
-.soil-moisture-moist {
+/* Water message */
+#water-msg-container {
+	position: absolute;
+	top: -10px;
+	left: 50%;
+	transform: translateX(-50%);
+	pointer-events: none;
+	overflow: hidden;
+}
+
+.water-msg {
+	font-size: 14px;
+	font-weight: bold;
 	color: green;
+	position: absolute;
+	top: 0;
+	opacity: 1;
+	animation: float-up 2s ease-out forwards;
 }
 
-.soil-moisture-damp {
-	color: yellowgreen;
+@keyframes float-up {
+	0% {
+		transform: translateY(0);
+		opacity: 1;
+	}
+	100% {
+		transform: translateY(-50px);
+		opacity: 0;
+	}
 }
 
-.soil-moisture-dry {
-	color: orange;
+/* Help button styling */
+#help-btn {
+	background: none;
+	border: none;
+	cursor: pointer;
+	position: absolute;
+	top: 20px;
+	right: 20px;
 }
 
-.soil-moisture-cracking {
-	color: red;
+#help-icon {
+	width: 30px;
+	height: 30px;
 }
 
-/* Status color coding */
-.status-alive {
-	color: green;
+/* Help Modal Styling */
+#help-modal {
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	background: rgba(0, 0, 0, 0.5);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	z-index: 1000;
+	opacity: 1;
+	transition: opacity 0.3s ease;
 }
 
-.status-dead {
-	color: red;
+#help-modal.hidden {
+	opacity: 0;
+	pointer-events: none;
+}
+
+#help-content {
+	background: white;
+	padding: 20px;
+	border-radius: 8px;
+	text-align: center;
+	width: 90%;
+	max-width: 400px;
+	box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+#help-content h3 {
+	margin-top: 0;
+}
+
+#close-help {
+	position: absolute;
+	top: 10px;
+	right: 10px;
+	font-size: 20px;
+	cursor: pointer;
+	color: gray;
+}
+
+#close-help:hover {
+	color: black;
+}
+
+/* Plant dying effect */
+#plant.dead {
+	opacity: 0.4;
+	filter: grayscale(100%);
 }

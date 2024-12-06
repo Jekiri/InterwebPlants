@@ -9,19 +9,47 @@
 </head>
 <body>
 	<div id="app">
-		<h1>Days Survived: <span id="days-counter">0</span></h1>
-		<p id="status">Status: Alive</p> <!-- Status placeholder -->
+
+		<!-- Game Content -->
+		<h2>Days Survived: <span id="days-counter">0</span></h2>
+		<p id="status">Status: <i>Fetching...</i></p>
 		<div id="plant-container">
 			<img id="plant" src="assets/pictures/tree_stage1.png" alt="Plant">
 		</div>
-    <br>
-    <br>
-    <br>
-    <br>
 		<div id="info">
-			<p id="soil-moisture">Soil Moisture: </p>
+			<p id="soil-moisture">Soil Moisture: <i>Fetching...</i></p>
 		</div>
-		<button id="water-btn">Water the plant!</button>
+		<div id="water-can-container">
+			<img id="watering-can" src="assets/pictures/watering_can.png" alt="Watering Can">
+			<div id="water-msg-container"></div>
+		</div>
+
+		<!-- Help Button -->
+		<button id="help-btn">
+			<img src="assets/pictures/question_mark.png" alt="Help" id="help-icon">
+		</button>
+	</div>
+
+	<!-- Help Modal -->
+	<div id="help-modal" class="hidden">
+		<div id="help-content">
+			<span id="close-help">&times;</span>
+			<h3>How it works</h3>
+			<p>
+				Welcome to 🌱 InterwebPlants! Your goal is to keep your plant alive by watering it regularly. 
+				If you don't water the plant for a certain period, it will die. Here's how it works:
+			</p>
+			<ul>
+				<li>🌧️ Click on the watering can to water the plant.</li>
+				<li>🕒 If the plant is not watered within 12 hours, it will die.</li>
+				<li>💧 Soil moisture levels will indicate the current state of the plant's water needs.</li>
+				<li>🌳 Watch the plants grow over time as you keep them alive!</li>
+				<li>Note: This is a shared plant. You are watering the same plant with other people online.</li>
+			</ul>
+			<p>
+				Try to survive as many days as possible and see the plants reach their final form!
+			</p>
+		</div>
 	</div>
 </body>
 </html>
