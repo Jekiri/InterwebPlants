@@ -1,6 +1,6 @@
 // Firebase configuration
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
-import { getFirestore, doc, getDoc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+import { getFirestore, doc, getDoc, setDoc, onSnapshot, Timestamp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
 import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-analytics.js";
 import { setLogLevel } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
 
@@ -17,7 +17,6 @@ const firebaseConfig = {
 	measurementId: "G-2YW9V8FJYK"
 };
 
-// Initialize Firebase, Firestore, and Analytics
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const analytics = getAnalytics(app);
@@ -41,8 +40,8 @@ const plants = [
 ];
 
 // Constants
-const ONE_DAY = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
-const TIME_TO_DIE = 12 * 60 * 60 * 1000; // Time to die without water
+const ONE_DAY = 24 * 60 * 60 * 1000; // 24 hours in ms
+const TIME_TO_DIE = 12 * 60 * 60 * 1000; // 12 hours in ms
 
 // DOM Elements
 const daysCounter = document.getElementById("days-counter");
@@ -53,12 +52,11 @@ const wateringCan = document.getElementById("watering-can");
 
 // Update the UI with plant status
 async function updatePlantUI(data) {
-	const now = Date.now();
-	const lastWatered = data.lastWatered;
-	const plantedAt = data.plantedAt;
+	const nowMs = Date.now();
+	const lastWateredMs = data.lastWatered.toMillis();
+	const plantedAtMs = data.plantedAt.toMillis();
 
-	// Calculate plant status
-	const timeSinceLastWatered = now - lastWatered;
+	const timeSinceLastWatered = nowMs - lastWateredMs;
 	const isDead = timeSinceLastWatered > TIME_TO_DIE;
 
 	// Update status display
@@ -70,17 +68,15 @@ async function updatePlantUI(data) {
 	soilMoistureEl.textContent = "Soil Moisture: " + moistureLabel;
 	soilMoistureEl.className = "soil-moisture-" + moistureLabel.toLowerCase();
 
-	// Update days survived
-	const fullDays = Math.floor((now - plantedAt) / ONE_DAY);
-	daysCounter.textContent = isDead ? "0" : fullDays;
+	// Calculate days survived (as a display)
+	const fullDays = Math.floor((nowMs - plantedAtMs) / ONE_DAY);
+	daysCounter.textContent = isDead ? "0" : fullDays.toString();
 
 	// Update plant stage
 	const currentStage = plants[0].stages.find((stage) => fullDays >= stage.day) || plants[0].stages[0];
 	plantImg.src = currentStage.png;
 
-	// Log updates
 	console.log("Plant updated:", { ...data, isDead });
-
 	if (isDead) {
 		console.warn("The plant is dead. Please water it to restart.");
 	}
@@ -88,7 +84,7 @@ async function updatePlantUI(data) {
 
 // Reset the plant in Firestore
 async function resetPlant() {
-	const now = Date.now();
+	const now = Timestamp.now();
 	const resetData = {
 		lastWatered: now,
 		plantedAt: now,
@@ -100,29 +96,62 @@ async function resetPlant() {
 
 // Water the plant
 async function waterPlant() {
-	const now = Date.now();
 	const docSnap = await getDoc(plantRef);
 
+	// Initialization scenario if doc doesn't exist
 	if (!docSnap.exists()) {
-		console.error("Plant document does not exist!");
+		const now = Timestamp.now();
+		const initData = {
+			lastWatered: now,
+			plantedAt: now,
+			daysSurvived: 0
+		};
+		await setDoc(plantRef, initData);
+		console.log("Plant initialized successfully!");
 		return;
 	}
 
 	const data = docSnap.data();
-	const isDead = now - data.lastWatered > TIME_TO_DIE;
+	const now = Timestamp.now();
+	const nowMs = Date.now();
+	const plantedAtMs = data.plantedAt.toMillis();
+	const fullDays = Math.floor((nowMs - plantedAtMs) / ONE_DAY);
+	const isDead = nowMs - data.lastWatered.toMillis() > TIME_TO_DIE;
 
 	if (isDead) {
-		// Reset the plant if it's dead
+		// Dead -> Reset scenario
 		await resetPlant();
 		console.log("Plant was dead. Resetting...");
 	} else {
-		// Water the plant normally
-		const updateData = {
-			...data,
-			lastWatered: now
-		};
-		await setDoc(plantRef, updateData);
-		console.log("Plant watered successfully!");
+		// Alive scenario
+		// Check if at least one full day has passed since the last increment
+		// If fullDays > data.daysSurvived, we are at or past a new 24-hour mark,
+		// so we increment daysSurvived by 1 on this watering.
+		if (fullDays > data.daysSurvived) {
+			// Normal watering WITH increment
+			const updateData = {
+				...data,
+				lastWatered: now,
+				daysSurvived: data.daysSurvived + 1,
+				// plantedAt stays the same
+				plantedAt: data.plantedAt
+			};
+			await setDoc(plantRef, updateData);
+			console.log("Plant watered + day incremented successfully!");
+		} else {
+			// Normal watering WITHOUT increment
+			// Less than 24 hours since the last increment, but we still want to update lastWatered
+			// This scenario updates soil moisture and lastWatered without incrementing daysSurvived.
+			const updateData = {
+				...data,
+				lastWatered: now,
+				// daysSurvived stays the same
+				daysSurvived: data.daysSurvived,
+				plantedAt: data.plantedAt // unchanged
+			};
+			await setDoc(plantRef, updateData);
+			console.log("Plant watered without incrementing daysSurvived!");
+		}
 	}
 }
 
@@ -148,6 +177,7 @@ onSnapshot(plantRef, (docSnap) => {
 	if (docSnap.exists()) {
 		updatePlantUI(docSnap.data());
 	} else {
+		// If no doc, initialize
 		resetPlant();
 	}
 });
