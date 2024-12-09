@@ -8,7 +8,7 @@ import { setLogLevel } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-
 setLogLevel("debug");
 
 const firebaseConfig = {
-	apiKey: "YOUR_API_KEY",
+	apiKey: "AIzaSyCAqJ5pOizXYe6XTEjsQz0A3cZH4jpS2H8",
 	authDomain: "interwebplants.firebaseapp.com",
 	projectId: "interwebplants",
 	storageBucket: "interwebplants.firebasestorage.app",
