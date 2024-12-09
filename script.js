@@ -109,27 +109,44 @@ async function waterPlant() {
 
 	const data = docSnap.data();
 	const timeSinceLastWatered = now - data.lastWatered;
+	const fullDaysSinceLastWatered = Math.floor(timeSinceLastWatered / ONE_DAY);
+	const updatedDaysSurvived = data.daysSurvived + fullDaysSinceLastWatered;
+
 	const isDead = timeSinceLastWatered > TIME_TO_DIE;
+
+	// Always include required fields in the Firestore write
+	let updateData;
 
 	if (isDead) {
 		// Reset the plant if it's dead
 		await resetPlant();
 		console.log("Plant was dead. Resetting...");
 	} else {
-		// Check if 24 hours have passed since the last watering
-		const fullDaysSinceLastWatered = Math.floor(timeSinceLastWatered / ONE_DAY);
-		const updatedDaysSurvived = data.daysSurvived + fullDaysSinceLastWatered;
-
 		// Update Firestore with new data
-		const updateData = {
-			...data,
+		updateData = {
 			lastWatered: now,
-			daysSurvived: updatedDaysSurvived,
+			plantedAt: data.plantedAt,
+			daysSurvived: fullDaysSinceLastWatered > 0 ? updatedDaysSurvived : data.daysSurvived, // Increment days only if 24+ hours passed
 		};
-		await setDoc(plantRef, updateData);
-		console.log(`Plant watered successfully! Days survived: ${updatedDaysSurvived}`);
+
+		try {
+			await setDoc(plantRef, updateData);
+			console.log("Plant watered successfully!");
+		} catch (error) {
+			console.error("Error watering plant:", error);
+		}
 	}
+
+	// Ensure soil moisture updates even if daysSurvived is not incremented
+	await getDoc(plantRef).then((updatedSnap) => {
+		if (updatedSnap.exists()) {
+			updatePlantUI(updatedSnap.data());
+		} else {
+			console.error("Failed to fetch updated plant state.");
+		}
+	});
 }
+
 
 
 // Get soil moisture label
