@@ -97,7 +97,6 @@ async function resetPlant() {
 	console.log("Plant reset successfully!");
 }
 
-// Water the plant
 async function waterPlant() {
 	const now = Date.now();
 	const docSnap = await getDoc(plantRef);
@@ -108,43 +107,21 @@ async function waterPlant() {
 	}
 
 	const data = docSnap.data();
-	const timeSinceLastWatered = now - data.lastWatered;
-	const fullDaysSinceLastWatered = Math.floor(timeSinceLastWatered / ONE_DAY);
-	const updatedDaysSurvived = data.daysSurvived + fullDaysSinceLastWatered;
-
-	const isDead = timeSinceLastWatered > TIME_TO_DIE;
-
-	// Always include required fields in the Firestore write
-	let updateData;
+	const isDead = now - data.lastWatered > TIME_TO_DIE;
 
 	if (isDead) {
 		// Reset the plant if it's dead
 		await resetPlant();
 		console.log("Plant was dead. Resetting...");
 	} else {
-		// Update Firestore with new data
-		updateData = {
+		// Water the plant normally
+		const updateData = {
+			...data,
 			lastWatered: now,
-			plantedAt: data.plantedAt,
-			daysSurvived: fullDaysSinceLastWatered > 0 ? updatedDaysSurvived : data.daysSurvived, // Increment days only if 24+ hours passed
 		};
-
-		try {
-			await setDoc(plantRef, updateData);
-			console.log("Plant watered successfully!");
-		} catch (error) {
-			console.error("Error watering plant:", error);
-		}
+		await setDoc(plantRef, updateData);
+		console.log("Plant watered successfully!");
 	}
-
-	// Ensure soil moisture updates even if daysSurvived is not incremented
-	await getDoc(plantRef).then((updatedSnap) => {
-		if (updatedSnap.exists()) {
-			updatePlantUI(updatedSnap.data());
-		} else {
-			console.error("Failed to fetch updated plant state.");
-		}
-	});
 }
 
 
@@ -166,7 +143,6 @@ function getSoilMoistureLabel(timeSinceWatered) {
 	return "Cracking";
 }
 
-
 // Real-time listener for Firestore
 onSnapshot(plantRef, (docSnap) => {
 	if (docSnap.exists()) {
@@ -180,8 +156,3 @@ onSnapshot(plantRef, (docSnap) => {
 
 // Event listener for watering can graphic
 wateringCan.addEventListener("click", waterPlant);
-
-
-
-
-
