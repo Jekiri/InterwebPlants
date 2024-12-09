@@ -42,7 +42,7 @@ const plants = [
 
 // Constants
 const ONE_DAY = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
-const TIME_TO_DIE = 12 * 60 * 60 * 1000; // Time to die without water
+const TIME_TO_DIE = 6 * 60 * 60 * 1000; // Time to die without water - 6 hours
 
 // DOM Elements
 const daysCounter = document.getElementById("days-counter");
@@ -128,12 +128,12 @@ async function waterPlant() {
 // Get soil moisture label
 function getSoilMoistureLabel(timeSinceWatered) {
 	const SOIL_MOISTURE_LEVELS = [
-		{ label: "Soaked", duration: 1 * 60 * 1000 }, // 1 minute
-		{ label: "Wet", duration: 3 * 60 * 1000 }, // 3 minutes
-		{ label: "Moist", duration: 6 * 60 * 1000 }, // 6 minutes
-		{ label: "Damp", duration: 8 * 60 * 1000 }, // 8 minutes
-		{ label: "Dry", duration: 10 * 60 * 1000 }, // 10 minutes
-		{ label: "Cracking", duration: Infinity }, // Beyond 10 minutes
+		{ label: "Soaked", duration: 30 * 60 * 1000 }, // 30 minutes
+		{ label: "Wet", duration: 1 * 60 * 60 * 1000 }, // 1 hour
+		{ label: "Moist", duration: 2 * 60 * 60 * 1000 }, // 2 hour
+		{ label: "Damp", duration: 3 * 60 * 60 * 1000 }, // 3 hours
+		{ label: "Dry", duration: 4 * 60 * 1000 }, // 4 hours
+		{ label: "Cracking", duration: Infinity }, // Anything after 4 hours
 	];
 
 	for (const level of SOIL_MOISTURE_LEVELS) {
