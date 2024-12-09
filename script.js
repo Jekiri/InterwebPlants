@@ -124,16 +124,6 @@ async function waterPlant() {
 	}
 }
 
-	// Ensure soil moisture updates even if daysSurvived is not incremented
-	await getDoc(plantRef).then((updatedSnap) => {
-		if (updatedSnap.exists()) {
-			updatePlantUI(updatedSnap.data());
-		} else {
-			console.error("Failed to fetch updated plant state.");
-		}
-	});
-}
-
 
 
 // Get soil moisture label
