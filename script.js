@@ -97,6 +97,7 @@ async function resetPlant() {
 	console.log("Plant reset successfully!");
 }
 
+// Water the plant
 async function waterPlant() {
 	const now = Date.now();
 	const docSnap = await getDoc(plantRef);
@@ -107,21 +108,43 @@ async function waterPlant() {
 	}
 
 	const data = docSnap.data();
-	const isDead = now - data.lastWatered > TIME_TO_DIE;
+	const timeSinceLastWatered = now - data.lastWatered;
+	const fullDaysSinceLastWatered = Math.floor(timeSinceLastWatered / ONE_DAY);
+	const updatedDaysSurvived = data.daysSurvived + fullDaysSinceLastWatered;
+
+	const isDead = timeSinceLastWatered > TIME_TO_DIE;
+
+	// Always include required fields in the Firestore write
+	let updateData;
 
 	if (isDead) {
 		// Reset the plant if it's dead
 		await resetPlant();
 		console.log("Plant was dead. Resetting...");
 	} else {
-		// Water the plant normally
-		const updateData = {
-			...data,
+		// Update Firestore with new data
+		updateData = {
 			lastWatered: now,
+			plantedAt: data.plantedAt,
+			daysSurvived: fullDaysSinceLastWatered > 0 ? updatedDaysSurvived : data.daysSurvived, // Increment days only if 24+ hours passed
 		};
-		await setDoc(plantRef, updateData);
-		console.log("Plant watered successfully!");
+
+		try {
+			await setDoc(plantRef, updateData);
+			console.log("Plant watered successfully!");
+		} catch (error) {
+			console.error("Error watering plant:", error);
+		}
 	}
+
+	// Ensure soil moisture updates even if daysSurvived is not incremented
+	await getDoc(plantRef).then((updatedSnap) => {
+		if (updatedSnap.exists()) {
+			updatePlantUI(updatedSnap.data());
+		} else {
+			console.error("Failed to fetch updated plant state.");
+		}
+	});
 }
 
 
@@ -133,7 +156,7 @@ function getSoilMoistureLabel(timeSinceWatered) {
 		{ label: "Wet", duration: 1 * 60 * 60 * 1000 }, // 1 hour
 		{ label: "Moist", duration: 2 * 60 * 60 * 1000 }, // 2 hour
 		{ label: "Damp", duration: 3 * 60 * 60 * 1000 }, // 3 hours
-		{ label: "Dry", duration: 4 * 60 * 1000 }, // 4 hours
+		{ label: "Dry", duration: 4 * 60 * 60 * 1000 }, // 4 hours
 		{ label: "Cracking", duration: Infinity }, // Anything after 4 hours
 	];
 
@@ -142,6 +165,7 @@ function getSoilMoistureLabel(timeSinceWatered) {
 	}
 	return "Cracking";
 }
+
 
 // Real-time listener for Firestore
 onSnapshot(plantRef, (docSnap) => {
@@ -156,3 +180,8 @@ onSnapshot(plantRef, (docSnap) => {
 
 // Event listener for watering can graphic
 wateringCan.addEventListener("click", waterPlant);
+
+
+
+
+
