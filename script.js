@@ -108,22 +108,29 @@ async function waterPlant() {
 	}
 
 	const data = docSnap.data();
-	const isDead = now - data.lastWatered > TIME_TO_DIE;
+	const timeSinceLastWatered = now - data.lastWatered;
+	const isDead = timeSinceLastWatered > TIME_TO_DIE;
 
 	if (isDead) {
 		// Reset the plant if it's dead
 		await resetPlant();
 		console.log("Plant was dead. Resetting...");
 	} else {
-		// Water the plant normally
+		// Check if 24 hours have passed since the last watering
+		const fullDaysSinceLastWatered = Math.floor(timeSinceLastWatered / ONE_DAY);
+		const updatedDaysSurvived = data.daysSurvived + fullDaysSinceLastWatered;
+
+		// Update Firestore with new data
 		const updateData = {
 			...data,
 			lastWatered: now,
+			daysSurvived: updatedDaysSurvived,
 		};
 		await setDoc(plantRef, updateData);
-		console.log("Plant watered successfully!");
+		console.log(`Plant watered successfully! Days survived: ${updatedDaysSurvived}`);
 	}
 }
+
 
 // Get soil moisture label
 function getSoilMoistureLabel(timeSinceWatered) {
