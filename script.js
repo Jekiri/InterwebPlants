@@ -1,20 +1,20 @@
 // Firebase configuration
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
 import { getFirestore, doc, getDoc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
-import { getAnalytics, logEvent } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-analytics.js";
+import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-analytics.js";
 import { setLogLevel } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
 
 // Enable Firestore debugging
 setLogLevel("debug");
 
 const firebaseConfig = {
-	apiKey: "AIzaSyCAqJ5pOizXYe6XTEjsQz0A3cZH4jpS2H8",
+	apiKey: "YOUR_API_KEY",
 	authDomain: "interwebplants.firebaseapp.com",
 	projectId: "interwebplants",
 	storageBucket: "interwebplants.firebasestorage.app",
 	messagingSenderId: "568838972773",
 	appId: "1:568838972773:web:afcc9203f7dd1152976d8c",
-	measurementId: "G-2YW9V8FJYK",
+	measurementId: "G-2YW9V8FJYK"
 };
 
 // Initialize Firebase, Firestore, and Analytics
@@ -35,9 +35,9 @@ const plants = [
 			{ day: 10, png: "assets/pictures/tree_stage3.png" },
 			{ day: 30, png: "assets/pictures/tree_stage4.png" },
 			{ day: 150, png: "assets/pictures/tree_stage5.png" },
-			{ day: 365, png: "assets/pictures/tree_stage6.png" },
-		],
-	},
+			{ day: 365, png: "assets/pictures/tree_stage6.png" }
+		]
+	}
 ];
 
 // Constants
@@ -49,25 +49,26 @@ const daysCounter = document.getElementById("days-counter");
 const plantImg = document.getElementById("plant");
 const soilMoistureEl = document.getElementById("soil-moisture");
 const statusEl = document.getElementById("status");
-const waterBtn = document.getElementById("water-btn");
+const wateringCan = document.getElementById("watering-can");
 
 // Update the UI with plant status
 async function updatePlantUI(data) {
 	const now = Date.now();
-	const { lastWatered, plantedAt, daysSurvived } = data;
+	const lastWatered = data.lastWatered;
+	const plantedAt = data.plantedAt;
 
 	// Calculate plant status
 	const timeSinceLastWatered = now - lastWatered;
 	const isDead = timeSinceLastWatered > TIME_TO_DIE;
 
 	// Update status display
-	statusEl.textContent = `Status: ${isDead ? "Dead" : "Alive"}`;
+	statusEl.textContent = "Status: " + (isDead ? "Dead" : "Alive");
 	statusEl.className = isDead ? "status-dead" : "status-alive";
 
 	// Update soil moisture display
 	const moistureLabel = getSoilMoistureLabel(timeSinceLastWatered);
-	soilMoistureEl.textContent = `Soil Moisture: ${moistureLabel}`;
-	soilMoistureEl.className = `soil-moisture-${moistureLabel.toLowerCase()}`;
+	soilMoistureEl.textContent = "Soil Moisture: " + moistureLabel;
+	soilMoistureEl.className = "soil-moisture-" + moistureLabel.toLowerCase();
 
 	// Update days survived
 	const fullDays = Math.floor((now - plantedAt) / ONE_DAY);
@@ -91,7 +92,7 @@ async function resetPlant() {
 	const resetData = {
 		lastWatered: now,
 		plantedAt: now,
-		daysSurvived: 0,
+		daysSurvived: 0
 	};
 	await setDoc(plantRef, resetData);
 	console.log("Plant reset successfully!");
@@ -118,7 +119,7 @@ async function waterPlant() {
 		// Water the plant normally
 		const updateData = {
 			...data,
-			lastWatered: now,
+			lastWatered: now
 		};
 		await setDoc(plantRef, updateData);
 		console.log("Plant watered successfully!");
@@ -133,7 +134,7 @@ function getSoilMoistureLabel(timeSinceWatered) {
 		{ label: "Moist", duration: 6 * 60 * 60 * 1000 },
 		{ label: "Damp", duration: 8 * 60 * 60 * 1000 },
 		{ label: "Dry", duration: 10 * 60 * 60 * 1000 },
-		{ label: "Cracking", duration: Infinity },
+		{ label: "Cracking", duration: Infinity }
 	];
 
 	for (const level of SOIL_MOISTURE_LEVELS) {
@@ -151,5 +152,5 @@ onSnapshot(plantRef, (docSnap) => {
 	}
 });
 
-// Event listener for watering button
-waterBtn.addEventListener("click", waterPlant);
+// Event listener for watering can
+wateringCan.addEventListener("click", waterPlant);
