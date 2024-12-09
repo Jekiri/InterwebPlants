@@ -49,8 +49,6 @@ button:disabled {
 	cursor: not-allowed;
 }
 
-
-
 #water-can-container {
 	cursor: pointer;
 	margin-top: 20px;
@@ -68,7 +66,6 @@ button:disabled {
 #watering-can:active {
 	transform: scale(1.1);
 }
-
 
 /* Soil moisture color coding */
 .soil-moisture-soaked {
