@@ -42,7 +42,7 @@ const plants = [
 
 // Constants
 const ONE_DAY = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
-const TIME_TO_DIE = 6 * 60 * 60 * 1000; // Time to die without water - 6 hours
+const TIME_TO_DIE = 12 * 60 * 60 * 1000; // Time to die without water - 6 hours
 
 // DOM Elements
 const daysCounter = document.getElementById("days-counter");
