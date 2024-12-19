@@ -109,7 +109,7 @@ button:disabled {
 
 /* Status color coding */
 .status-alive {
-	color: green;
+	color: rgb(54, 187, 204);
 }
 
 .status-dead {
