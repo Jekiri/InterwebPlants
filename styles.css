@@ -88,23 +88,23 @@ button:disabled {
 }
 
 .soil-moisture-wet {
-	color: lightblue;
+	color: rgb(62, 106, 250);
 }
 
 .soil-moisture-moist {
-	color: green;
+	color: rgb(81, 162, 228);
 }
 
 .soil-moisture-damp {
-	color: yellowgreen;
+	color: rgb(130, 223, 247);
 }
 
 .soil-moisture-dry {
-	color: orange;
+	color: rgb(129, 84, 0);
 }
 
 .soil-moisture-cracking {
-	color: red;
+	color: rgb(90, 59, 0);
 }
 
 /* Status color coding */
